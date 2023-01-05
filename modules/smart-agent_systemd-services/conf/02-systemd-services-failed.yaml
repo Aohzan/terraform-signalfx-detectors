@@ -1,0 +1,13 @@
+module: systemd-services
+name: failed
+
+transformation: true
+aggregation: true
+
+signals:
+  signal:
+    metric: "gauge.active_state.failed"
+rules:
+  critical:
+    threshold: 0
+    comparator: "!="

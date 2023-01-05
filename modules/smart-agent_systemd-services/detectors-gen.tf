@@ -25,3 +25,29 @@ EOF
   max_delay = var.aliveness_max_delay
 }
 
+resource "signalfx_detector" "failed" {
+  name = format("%s %s", local.detector_name_prefix, "Systemd-services failed")
+
+  authorized_writer_teams = var.authorized_writer_teams
+  teams                   = try(coalescelist(var.teams, var.authorized_writer_teams), null)
+  tags                    = compact(concat(local.common_tags, local.tags, var.extra_tags))
+
+  program_text = <<-EOF
+    signal = data('gauge.active_state.failed', filter=${module.filtering.signalflow})${var.failed_aggregation_function}${var.failed_transformation_function}.publish('signal')
+    detect(when(signal != ${var.failed_threshold_critical}, lasting=%{if var.failed_lasting_duration_critical == null}None%{else}'${var.failed_lasting_duration_critical}'%{endif}, at_least=${var.failed_at_least_percentage_critical})).publish('CRIT')
+EOF
+
+  rule {
+    description           = "is != ${var.failed_threshold_critical}"
+    severity              = "Critical"
+    detect_label          = "CRIT"
+    disabled              = coalesce(var.failed_disabled, var.detectors_disabled)
+    notifications         = try(coalescelist(lookup(var.failed_notifications, "critical", []), var.notifications.critical), null)
+    runbook_url           = try(coalesce(var.failed_runbook_url, var.runbook_url), "")
+    tip                   = var.failed_tip
+    parameterized_subject = var.message_subject == "" ? local.rule_subject : var.message_subject
+    parameterized_body    = var.message_body == "" ? local.rule_body : var.message_body
+  }
+
+  max_delay = var.failed_max_delay
+}

@@ -77,6 +77,7 @@ This module creates the following SignalFx detectors which could contain one or 
 |Detector|Critical|Major|Minor|Warning|Info|
 |---|---|---|---|---|---|
 |Systemd-services aliveness|X|-|-|-|-|
+|Systemd-services failed|X|-|-|-|-|
 
 ## How to collect required metrics?
 
@@ -118,6 +119,15 @@ monitors:
   …
 ```
 
+If you only want to monitor failed services (and not inactive), you have to add:
+
+```yaml
+  - type: collectd/systemd
+    ...
+    sendActiveState: true
+    extraMetrics:
+      - gauge.active_state.failed
+```
 
 ### Metrics
 

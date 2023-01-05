@@ -18,3 +18,13 @@ source_doc: |
         - titi
     …
   ```
+
+  If you only want to monitor failed services (and not inactive), you have to add:
+
+  ```yaml
+    - type: collectd/systemd
+      ...
+      sendActiveState: true
+      extraMetrics:
+        - gauge.active_state.failed
+  ```
